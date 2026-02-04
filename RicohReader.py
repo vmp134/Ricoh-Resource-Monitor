@@ -25,7 +25,7 @@ class MainApplication(tk.Frame):
         self.default_printers=[
                   {'IP':'172.18.181.227','Name':'CI-121',
                    'Serial':'C068C400217','EID':'14072973','Default': True},
-                  {'IP':'172.18.166.92','Name':'CI-202',
+                  {'IP':'172.18.181.228','Name':'CI-202',
                    'Serial':'C068C300002','EID':'14072974','Default': True},
                   {'IP':'172.18.181.232','Name':'CI-214',
                    'Serial':'C758M520307','EID':'14072971','Default': False},
@@ -34,17 +34,15 @@ class MainApplication(tk.Frame):
                   {'IP':'172.18.181.231','Name':'CI-335',
                    'Serial':'C068C400148','EID':'14072972','Default': True},
                   {'IP':'172.18.181.230','Name':'CI-DO',
-                   'Serial':'C758M520011','EID':'14072970','Default': False},
+                   'Serial':'C758M520011','EID':'14072970','Default': True},
                   {'IP':'172.18.178.120','Name':'SDW-FL2',
-                   'Serial':'C758M520012','EID':'14072977','Default': True},
+                   'Serial':'C758M520012','EID':'14072977','Default': False},
                   {'IP':'172.18.177.204','Name':'ANX-A',
                    'Serial':'C068C400209','EID':'14072979','Default': True},
                   {'IP':'172.19.55.10','Name':'ANX-B',
                    'Serial':'C068C400222','EID':'14072976','Default': True},
                   {'IP':'172.18.186.18','Name':'RH-204',
                    'Serial':'C727M810074','EID':'14381339','Default': False},
-                  {'IP':'172.18.162.240','Name':'AL-405',
-                   'Serial':'C91193826','EID':'14303534','Default': False}
         ]
 
         try:
