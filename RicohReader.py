@@ -103,7 +103,7 @@ class MainApplication(tk.Frame):
                      ('yellow.Horizontal.TProgressbar','Yellow')]
 
         #Define window properties
-        root.title('Ricoh Resource Monitor v3.6')
+        root.title('Ricoh Resource Monitor v3.7')
         if 'nt' == os.name:
             root.iconbitmap(resource_path('images/icon.ico'))
 
