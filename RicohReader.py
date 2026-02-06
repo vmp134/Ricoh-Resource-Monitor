@@ -76,6 +76,14 @@ class MainApplication(tk.Frame):
             file=resource_path('images/c6503f.png')).subsample(4, 4)
         self.c4500 = tk.PhotoImage(
             file=resource_path('images/c4500.png')).subsample(4, 4)
+        self.c6010 = tk.PhotoImage(
+            file=resource_path('images/c6010.png')).subsample(4, 4)
+        self.c3510 = tk.PhotoImage(
+            file=resource_path('images/c3510.png')).subsample(4, 4)
+        self.mfp5800 = tk.PhotoImage(
+            file=resource_path('images/mfp5800.png')).subsample(4, 4)
+        self.mfpm681 = tk.PhotoImage(
+            file=resource_path('images/mfpm681.png')).subsample(4, 4)
         self.no_connection = tk.PhotoImage(
             file=resource_path('images/NoConnection.png')).subsample(4, 4)
         self.missing_model = tk.PhotoImage(
@@ -532,6 +540,14 @@ class PrinterFrame(tk.Frame):
                 printer_image=parent.parent.c3504ex
             elif model == 'IM C4500':
                 printer_image=parent.parent.c4500
+            elif model == 'IM C6010':
+                printer_image=parent.parent.c6010  
+            elif model == 'IM C3510':
+                printer_image=parent.parent.c3510
+            elif model == 'HP Color LaserJet MFP 5800':
+                printer_image=parent.parent.mfp5800
+            elif model == 'HP Color LaserJet MFP M681':
+                printer_image=parent.parent.mfpm681                                              
             elif model == 'MP C6503':
                 #The C6503 may or may not have an LCT
                 for item in walk(printer['IP'],
