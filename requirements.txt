@@ -1,2 +1,4 @@
-Pmw==2.0.1
+APScheduler>=3.10,<4
+Flask>=2.2,<4
 puresnmp==1.5.1
+waitress>=2.1,<4

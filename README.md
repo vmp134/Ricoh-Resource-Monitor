@@ -1,65 +1,112 @@
-# Ricoh-Resource-Monitor
+# Ricoh Resource Monitor
 
-[![Build Status](https://travis-ci.org/4rm/Ricoh-Resource-Monitor.svg?branch=master)](https://travis-ci.org/4rm/Ricoh-Resource-Monitor) [![Github Release](https://img.shields.io/github/release/4rm/Ricoh-resource-monitor.svg?color=leaf)](https://github.com/4rm/Ricoh-Resource-Monitor/releases) [![Github All Releases](https://img.shields.io/github/downloads/4rm/Ricoh-Resource-Monitor/total.svg)]() [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+Internal web dashboard for monitoring Ricoh and HP printer resources over SNMP.
+The Flask app polls printers from a central machine, stores cached status in
+SQLite, renders a read-only dashboard, and sends throttled SMTP notifications
+for low resources.
 
-GUI to monitor ink and paper tray levels at work. Values are gathered using SNMP and displayed using TkInter.
+## Technology
 
-<img src="https://i.imgur.com/lmd6ghC.png" alt="Ricoh Resource Monitor screenshot">
+- Python
+- Flask
+- SQLite
+- APScheduler
+- waitress
+- puresnmp
 
-<table>
-<tr><td><ul>
-<b><p align="center">Contents</p></b>
-<li><a href="#Tech">Technology used</a></li>
-<li><a href="#How">How it works</a></li>
-  <ul><li><a href="Editing">Editing printer list</a></li></ul>
-<li><a href="#Known">Known Issues</a></li>
-<li><a href="#Thanks">Thanks</a></li>
-</ul></td></tr>
-</table>
+## Run Locally
 
-## <a name="Tech">Technology used</a>
+Install dependencies:
 
-<table>
-  <tr>
-  <td><a href="https://github.com/exhuma/puresnmp">puresnmp</a> (1.5.1) </td>
-    <td>Python SNMPv2 Library </td>
-  </tr>
-  <tr>
-  <td><a href="https://github.com/takaakiaoki/bundlepmw">takaakiaoki's bundlepmw</a></td>
-    <td>Modernized Pmw bundle</td>
-  </tr>
-</table>
+```sh
+python -m pip install -r requirements.txt
+```
 
-## <a name="How">How it works</a>
+Initialize the database and import printer defaults:
 
-All of the printers are networked with publicly available SNMP values. As long as the host machine is on the same network, this program grabs the values using generic OIDs and displays them in a nice TkInter window. OIDs used are as follows:
+```sh
+python manage.py init-db
+```
+
+Run one polling pass:
+
+```sh
+python manage.py poll-once --dry-run
+```
+
+Start the web app:
+
+```sh
+python web_app.py
+```
+
+For a Windows production-style process, use waitress:
+
+```sh
+waitress-serve --call web_app:create_app
+```
+
+The app listens on `127.0.0.1:5000` by default. Set `RICOH_HOST`,
+`RICOH_PORT`, or `RICOH_DB_PATH` to override local deployment settings.
+
+## Management Commands
+
+```sh
+python manage.py init-db
+python manage.py import-printers printers.json
+python manage.py poll-once
+python manage.py test-email user@rutgers.edu
+```
+
+The web dashboard is read-only for printer data. Printer changes are imported
+from JSON through `manage.py import-printers`.
+
+## Email Alerts
+
+Use `notification_config.example.json` as the template for
+`notification_config.json`, or configure SMTP with environment variables:
+
+|Variable|Purpose|
+|-|-|
+|`RICOH_EMAIL_ENABLED`|Set to `true` to send real email|
+|`RICOH_EMAIL_DRY_RUN`|Set to `true` to print/log emails without sending|
+|`RICOH_ALERT_RECIPIENTS`|Comma-separated recipient list|
+|`RICOH_SMTP_HOST`|SMTP host|
+|`RICOH_SMTP_PORT`|SMTP port|
+|`RICOH_SMTP_USERNAME`|SMTP username|
+|`RICOH_SMTP_PASSWORD`|SMTP password|
+|`RICOH_SMTP_FROM`|Sender email address|
+|`RICOH_SMTP_USE_TLS`|Set to `true` for STARTTLS|
+
+Dashboard signup auto-subscribes valid `@rutgers.edu` addresses. Notification
+recipients are the configured recipient list plus active email subscribers.
+
+## Polling And Storage
+
+The Flask process starts an APScheduler job that polls every 600 seconds. Page
+loads read cached SQLite data only; browser requests do not perform SNMP calls.
+
+SQLite tables store configured printers, latest status, 30 days of status
+history, notification throttle state, email subscribers, and app settings.
+
+## SNMP OIDs
 
 |OID|Value|Method|
 |-|-|-|
-|Serial Number|.1.3.6.1.2.1.43.5.1.1.17.1|Get|
-|Printer Model|.1.3.6.1.2.1.43.11.1.1.6|Get|
-|Ink Names|.1.3.6.1.2.1.43.11.1.1.6|Walk|
-|Ink Levels|.1.3.6.1.2.1.43.11.1.1.9.1|Walk|
-|Tray Names|.1.3.6.1.2.1.43.8.2.1.13|Walk|
-|Current Tray Fill|.1.3.6.1.2.1.43.8.2.1.10.1|Walk|
-|Max Tray Fill|.1.3.6.1.2.1.43.8.2.1.9.1|Walk|
-|Printer Errors|.1.3.6.1.2.1.43.18.1.1.8.1|Walk|
+|Printer Model|`.1.3.6.1.2.1.43.5.1.1.16.1`|Get|
+|Ink Levels|`.1.3.6.1.2.1.43.11.1.1.9.1`|Walk|
+|Tray Names|`.1.3.6.1.2.1.43.8.2.1.13`|Walk|
+|Current Tray Fill|`.1.3.6.1.2.1.43.8.2.1.10.1`|Walk|
+|Max Tray Fill|`.1.3.6.1.2.1.43.8.2.1.9.1`|Walk|
+|Tray Feed Dimension|`.1.3.6.1.2.1.43.8.2.1.4`|Walk|
+|Tray XFeed Dimension|`.1.3.6.1.2.1.43.8.2.1.5`|Walk|
+|Printer Errors|`.1.3.6.1.2.1.43.18.1.1.8.1`|Walk|
 
-### <a name="Editing">Editing printer list</a>
+Tray dimensions are reported in 1/10000 inch units. The status layer normalizes
+orientation and labels common sizes as `8.5x11`, `8.5x14`, and `11x17`.
 
-You can add or remove a printer by going to `File -> Edit Printer List`
+## Tests
 
-<img src="https://user-images.githubusercontent.com/3399474/117365336-26d44780-ae8d-11eb-8d9e-06d80bc00340.png" alt="Printer list screenshot" width=450>
-
-To add a printer, the `Name`, `IP`, and `Default` fields are required; the `Serial` and `EID` fields are not, so their spaces can be left blank, eg: `123.12.123.123,My Printer,,,True`. The `Default` field determines whether the printer is loaded by default when launching the program.
-
-`Reset Field` will return the printer list to its default state as of 5/6/21.
-
-## <a name="Known">Known Issues</a>
-
-- Printers will not report paper level changes unless they've been woken from Energy Saver Mode
-- Some trays are split into left- and right-hand compartments, but Ricoh reports their fill levels as one value
-- Log file may not be created in some locations unless RRM is launched as administrator
-
-## <a name="Thanks">Thanks</a>
-Thanks to takaakiaoki for their frozen [Pmw.py module](https://github.com/takaakiaoki/bundlepmw), which was needed to create the standalone .exe with pyinstaller.
+```sh
+python -m unittest discover -s tests
+```

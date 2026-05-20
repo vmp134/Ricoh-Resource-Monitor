@@ -1,8 +1,7 @@
 language: python
 python:
-  - "3.5"
-  - "3.6"
-dist: xenial
-services:
-  - xvfb
-script: python RicohReader.py
+  - "3.9"
+dist: focal
+install:
+  - python -m pip install -r requirements.txt
+script: python -m unittest discover -s tests

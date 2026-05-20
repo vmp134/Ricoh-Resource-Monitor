@@ -1,0 +1,16 @@
+{
+  "enabled": false,
+  "dry_run": true,
+  "recipients": [
+    "helpdesk@example.edu"
+  ],
+  "reminder_hours": 24,
+  "smtp": {
+    "host": "smtp.example.edu",
+    "port": 587,
+    "username": "ricoh-monitor@example.edu",
+    "password": "replace-with-real-password",
+    "from_email": "ricoh-monitor@example.edu",
+    "use_tls": true
+  }
+}

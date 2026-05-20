@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Ricoh Monitor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <h1>Ricoh Monitor</h1>
+        <p>{{ health.printer_count }} printers · {{ health.active_subscriber_count }} subscribers · Last check {{ health.last_checked or 'pending' }}</p>
+      </div>
+      <form class="signup" action="{{ url_for('signup') }}" method="post">
+        <input name="email" type="email" placeholder="netid@rutgers.edu" aria-label="Email address" required>
+        <button type="submit">Subscribe</button>
+      </form>
+    </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="messages">
+          {% for category, message in messages %}
+            <div class="message {{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <main class="printer-grid">
+      {% for item in latest %}
+        {% set status = item.status %}
+        {% set issues = item.issues %}
+        <section class="printer-card {{ 'offline' if not status.ok else '' }}">
+          <div class="printer-head">
+            <div>
+              <h2>{{ item.printer.Name }}</h2>
+              <p>{{ item.printer.IP }} · {{ status.model or 'Unknown model' }}</p>
+            </div>
+            <span class="state {{ 'ok' if status.ok and not issues else 'warn' }}">{{ 'OK' if status.ok and not issues else 'Needs attention' }}</span>
+          </div>
+
+          <div class="printer-body">
+            <img class="printer-image" src="{{ url_for('image_asset', image_key=status.image_key) }}" alt="">
+            <div class="summary">
+              <div>
+                <span>Paper fill</span>
+                <strong>{{ status.paper_percent }}%</strong>
+              </div>
+              <div>
+                <span>Deficit</span>
+                <strong>{{ status.paper_deficit }} pages</strong>
+              </div>
+              <div>
+                <span>Checked</span>
+                <strong>{{ item.last_checked or 'Pending' }}</strong>
+              </div>
+            </div>
+          </div>
+
+          {% if status.error %}
+            <div class="alert">{{ status.error }}</div>
+          {% endif %}
+
+          {% if issues %}
+            <ul class="issues">
+              {% for issue in issues %}
+                <li>{{ issue.summary }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+
+          <div class="meters">
+            {% for ink in status.ink_levels %}
+              <div class="meter-row">
+                <span>{{ ink.name }}</span>
+                <meter min="0" max="100" low="21" value="{{ ink.level }}"></meter>
+                <strong>{{ ink.level }}%</strong>
+              </div>
+            {% endfor %}
+          </div>
+
+          <table class="trays">
+            <thead>
+              <tr>
+                <th>Tray</th>
+                <th>Size</th>
+                <th>Fill</th>
+                <th>Sheets</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for tray in status.tray_levels if not tray.is_bypass %}
+                <tr class="{{ 'low' if tray.is_low else '' }}">
+                  <td>{{ tray.name }}</td>
+                  <td>{{ tray.paper_size }}</td>
+                  <td>{{ tray.percent }}%</td>
+                  <td>{{ tray.current }}/{{ tray.max }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </section>
+      {% endfor %}
+    </main>
+  </body>
+</html>
