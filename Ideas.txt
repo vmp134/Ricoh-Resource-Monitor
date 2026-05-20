@@ -1,0 +1,12 @@
+IDEAS FOR FUTURE IMPLEMENTATION:
+- Have RRM display paper sizes
+- Have RRM Email the helpdesk whenever a printer runs low
+- Have RRM have auto-reload by default
+- Fix the pyinstaller malware issue from windows defender
+- Dark Mode
+- Better UI
+- Resizable 
+
+- Refactoring?
+- Chuck into codex
+- Json file, instead of hardcoded printers

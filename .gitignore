@@ -1,0 +1,17 @@
+testing.py
+RicohReader.spec
+build/RicohReader/Analysis-00.toc
+build/RicohReader/base_library.zip
+build/RicohReader/EXE-00.toc
+build/RicohReader/PKG-00.toc
+build/RicohReader/PYZ-00.pyz
+build/RicohReader/PYZ-00.toc
+build/RicohReader/RicohReader.pkg
+build/RicohReader/warn-RicohReader.txt
+build/RicohReader/xref-RicohReader.html
+build/RicohReader/localpycs/pyimod01_archive.pyc
+build/RicohReader/localpycs/pyimod02_importers.pyc
+build/RicohReader/localpycs/pyimod03_ctypes.pyc
+build/RicohReader/localpycs/pyimod04_pywin32.pyc
+build/RicohReader/localpycs/struct.pyc
+dist/RicohReader.exe

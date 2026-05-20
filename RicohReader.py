@@ -8,6 +8,23 @@ from Pmw import Balloon
 from datetime import datetime
 from puresnmp import walk, get
 
+def parse_paper_size(dim1, dim2):
+    # Sort them so orientation (landscape vs portrait feed) doesn't matter
+    dims = sorted([dim1, dim2])
+    
+    # Check for standard sizes based on 1/10000 of an inch
+    if abs(dims[0] - 85000) < 1000 and abs(dims[1] - 110000) < 1000:
+        return "8.5x11"
+    elif abs(dims[0] - 85000) < 1000 and abs(dims[1] - 140000) < 1000:
+        return "8.5x14"
+    elif abs(dims[0] - 110000) < 1000 and abs(dims[1] - 170000) < 1000:
+        return "11x17"
+    else:
+        # Fallback calculation if it's a unique/custom size
+        w = round(dims[0] / 10000, 1)
+        h = round(dims[1] / 10000, 1)
+        return f"{w}x{h}"
+
 class MainApplication(tk.Frame):
     def __init__(self, parent, *args, **kwargs):
         tk.Frame.__init__(self, parent, *args, **kwargs)
@@ -64,6 +81,8 @@ class MainApplication(tk.Frame):
         self.tray_max_capacity_base_OID = '.1.3.6.1.2.1.43.8.2.1.9.1'
         self.tray_current_capacity_base_OID = '.1.3.6.1.2.1.43.8.2.1.10.1'
         self.error_base_OID = '.1.3.6.1.2.1.43.18.1.1.8.1'
+        self.tray_feed_dim_OID = '.1.3.6.1.2.1.43.8.2.1.4'
+        self.tray_xfeed_dim_OID = '.1.3.6.1.2.1.43.8.2.1.5'
 
         #Create printer images
         self.c3504ex = tk.PhotoImage(
@@ -111,7 +130,7 @@ class MainApplication(tk.Frame):
                      ('yellow.Horizontal.TProgressbar','Yellow')]
 
         #Define window properties
-        root.title('Ricoh Resource Monitor v3.6.1')
+        root.title('Ricoh Resource Monitor v3.6.2')
         if 'nt' == os.name:
             root.iconbitmap(resource_path('images/icon.ico'))
 
@@ -160,9 +179,12 @@ class SelectionPane(tk.Frame):
         self.menubar.add_cascade(label='File', menu=self.filemenu)
 
         self.aboutmenu = tk.Menu(self.menubar, tearoff=0)
-        github_url='https://github.com/4rm/Ricoh-Resource-Monitor/'
-        self.aboutmenu.add_command(label='GitHub',
-                                   command=lambda aurl=github_url:webbrowser.open(aurl))
+        orig_github_url='https://github.com/4rm/Ricoh-Resource-Monitor/'
+        new_github_url='https://github.com/vmp134/Ricoh-Resource-Monitor/'
+        self.aboutmenu.add_command(label='Original GitHub',
+                                   command=lambda aurl=orig_github_url:webbrowser.open(aurl))
+        self.aboutmenu.add_command(label='Current GitHub',
+                                   command=lambda aurl=new_github_url:webbrowser.open(aurl))
         self.aboutmenu.add_separator()
         self.aboutmenu.add_command(label='About',
                                    command=lambda:self.about_info())
@@ -450,7 +472,7 @@ class SelectionPane(tk.Frame):
             about_popup.iconbitmap(self.resource_path('images/icon.ico'))
         about_popup.lift()
         program_name=tk.Label(about_popup,
-                              text='Ricoh Resource Monitor v3.6.1',
+                              text='Ricoh Resource Monitor v3.6.2',
                               font=(None,14))
         program_name.pack()
         logo_canvas=tk.Canvas(about_popup, width=300, height=180)
@@ -458,7 +480,7 @@ class SelectionPane(tk.Frame):
         self.logo=tk.PhotoImage(file=self.resource_path('images/icon.gif'))
         logo_canvas.create_image(150, 90, image=self.logo)
         tagline=tk.Label(about_popup,
-                         text='Developed by Emilio Garcia\nSC&I IT Helpdesk\nRutgers University')
+                         text='Developed by Emilio Garcia\nMaintained by Victor Peng\nSC&I IT Helpdesk\nRutgers University')
         tagline.pack(pady=(0,15))
 
     def return_bool(self, text_input):
@@ -595,6 +617,7 @@ class PrinterFrame(tk.Frame):
             tray_names=[]
             tray_current_level=[]
             tray_max_level=[]
+            tray_sizes=[]
             for item in walk(printer['IP'],
                              'public',
                              parent.parent.tray_names_base_OID
@@ -610,6 +633,14 @@ class PrinterFrame(tk.Frame):
                              parent.parent.tray_max_capacity_base_OID
                              ):
                 tray_max_level.append(item[1])
+            tray_feeds = [item[1] for item in walk(printer['IP'], 'public', parent.parent.tray_feed_dim_OID)]
+            tray_xfeeds = [item[1] for item in walk(printer['IP'], 'public', parent.parent.tray_xfeed_dim_OID)]
+            for i in range(len(tray_names)):
+                try:
+                    size_str = parse_paper_size(tray_feeds[i], tray_xfeeds[i])
+                    tray_sizes.append(size_str)
+                except:
+                    tray_sizes.append("Unknown")
 
             tray_frame=tk.Frame(self)
             tray_frame.pack(pady=(10,5))
@@ -627,19 +658,24 @@ class PrinterFrame(tk.Frame):
                 
                 self.max_capacity+=tray_max_level[i]
                 self.printer_deficit+=tray_deficit
-                tray_line=tk.Frame(tray_frame, height=20, width=170)
+                tray_line=tk.Frame(tray_frame, height=20, width=230)
                 
                 #Set propogate to 0 so we can manually define frame size
                 tray_line.pack_propagate(0)
 
-                tray_info=tk.Frame(tray_line, height=20, width=120)
+                tray_info=tk.Frame(tray_line, height=20, width=115)
                 tray_info.pack_propagate(0)
                 tray_info.pack(side=tk.RIGHT)
                 
-                tray_label=tk.Label(tray_line, text=item + ': ',
-                                    font=(None, 9, 'bold'),
-                                    foreground=label_color)
-                tray_label.pack(side=tk.LEFT, anchor=tk.W)
+                tray_size_label=tk.Label(tray_line, text=f"({tray_sizes[i]}):",
+                                         font=(None, 9, 'bold'),
+                                         foreground=label_color)
+                tray_size_label.pack(side=tk.RIGHT, anchor=tk.E)
+
+                tray_name_label=tk.Label(tray_line, text=item,
+                                         font=(None, 9, 'bold'),
+                                         foreground=label_color)
+                tray_name_label.pack(side=tk.LEFT, anchor=tk.W)
             
                 tray_percent=tk.Label(tray_info, text=str(percent)+'%',
                                       foreground=label_color,
@@ -670,7 +706,7 @@ class PrinterFrame(tk.Frame):
             self.paper_percentage=int(
                 ((self.max_capacity-self.printer_deficit)/self.max_capacity)*100
                 )
-            bar_width=165
+            bar_width=230
             paper_level_canvas=tk.Canvas(self, width=bar_width, height=20)
             paper_level_canvas.pack(side=tk.BOTTOM)
             paper_level_canvas.create_rectangle(2, 2, bar_width-1, 14,
@@ -686,7 +722,7 @@ class PrinterFrame(tk.Frame):
                                                 fill='#cbcbcb',
                                                 width=0
                                                 )
-            paper_level_canvas.create_text(80,8, font=(None, 8),
+            paper_level_canvas.create_text(115,8, font=(None, 8),
                                            text='Paper fill: ' +
                                            str(self.paper_percentage)+'%',
                                            fill='red' if self.paper_percentage<=50 else 'black'
