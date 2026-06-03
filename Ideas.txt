@@ -7,7 +7,7 @@ IDEAS FOR FUTURE IMPLEMENTATION:
 - Dark Mode
 - Better UI
 - Resizable 
-
+- Make github for releases alongside code, so we can link and download
 - Refactoring?
 - Chuck into codex
 - Json file, instead of hardcoded printers
