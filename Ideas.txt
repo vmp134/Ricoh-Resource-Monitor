@@ -1,6 +1,7 @@
 IDEAS FOR FUTURE IMPLEMENTATION:
 - Have RRM display paper sizes
 - Have RRM Email the helpdesk whenever a printer runs low
+- Fix issue where HP printers do not display properties
 - Have RRM have auto-reload by default
 - Fix the pyinstaller malware issue from windows defender
 - Dark Mode

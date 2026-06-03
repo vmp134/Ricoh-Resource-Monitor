@@ -130,7 +130,7 @@ class MainApplication(tk.Frame):
                      ('yellow.Horizontal.TProgressbar','Yellow')]
 
         #Define window properties
-        root.title('Ricoh Resource Monitor v3.6.2')
+        root.title('Ricoh Resource Monitor v3.6.3')
         if 'nt' == os.name:
             root.iconbitmap(resource_path('images/icon.ico'))
 
@@ -472,7 +472,7 @@ class SelectionPane(tk.Frame):
             about_popup.iconbitmap(self.resource_path('images/icon.ico'))
         about_popup.lift()
         program_name=tk.Label(about_popup,
-                              text='Ricoh Resource Monitor v3.6.2',
+                              text='Ricoh Resource Monitor v3.6.3',
                               font=(None,14))
         program_name.pack()
         logo_canvas=tk.Canvas(about_popup, width=300, height=180)
@@ -520,7 +520,7 @@ class PrinterFrame(tk.Frame):
                                                  parent.parent.model_OID))
             printer_model.pack()
 
-            url='http://' + printer['IP'] + '/web/guest/en/websys/webArch/mainFrame.cgi'
+            url='http://' + printer['IP']
             printer_IP=tk.Label(self, text=printer['IP'], fg='blue',
                                font=(None, 8, 'underline'), cursor='hand2')
             balloon.bind(printer_IP, 'Go to printer control panel')
